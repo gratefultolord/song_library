@@ -20,7 +20,7 @@
     "paths": {
         "/song": {
             "post": {
-                "description": "Добавление новой песни в библиотеку",
+                "description": "Добавление новой песни в библиотеку. Обязательные поля: group, song",
                 "consumes": [
                     "application/json"
                 ],
@@ -200,6 +200,73 @@
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Частичное обновление данных о существующей песне по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songs"
+                ],
+                "summary": "Частично обновить информацию о песне",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID песни",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Обновить поля песни",
+                        "name": "song",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Song"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",

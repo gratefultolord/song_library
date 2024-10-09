@@ -33,7 +33,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Добавление новой песни в библиотеку
+      description: 'Добавление новой песни в библиотеку. Обязательные поля: group,
+        song'
       parameters:
       - description: Добавить песню
         in: body
@@ -112,6 +113,51 @@ paths:
               type: string
             type: object
       summary: Получить информацию о песне
+      tags:
+      - songs
+    patch:
+      consumes:
+      - application/json
+      description: Частичное обновление данных о существующей песне по ID
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновить поля песни
+        in: body
+        name: song
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Song'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Частично обновить информацию о песне
       tags:
       - songs
     put:

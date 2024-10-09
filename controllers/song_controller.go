@@ -68,7 +68,7 @@ func GetSong(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 // AddSong godoc
 // @Summary Добавить новую песню
-// @Description Добавление новой песни в библиотеку
+// @Description Добавление новой песни в библиотеку. Обязательные поля: group, song
 // @Tags songs
 // @Accept json
 // @Produce json
@@ -83,6 +83,13 @@ func AddSong(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
 		log.Printf("[ERROR] Неверный формат запроса: %v\n", err)
 		http.Error(w, "Неверный ввод", http.StatusBadRequest)
+		return
+	}
+
+	// Проверка обязательных полей
+	if song.Group == "" || song.Song == "" {
+		log.Printf("[ERROR] Отсутствуют обязательные поля: group или song\n")
+		http.Error(w, "Отсутствуют обязательные поля: group или song", http.StatusBadRequest)
 		return
 	}
 
@@ -132,6 +139,49 @@ func UpdateSong(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	log.Printf("[DEBUG] Обновляем песню с ID %s: %+v\n", id, song)
 	if err := db.Save(&song).Error; err != nil {
 		log.Printf("[ERROR] Не удалось обновить песню с ID %s: %v\n", id, err)
+		http.Error(w, "Не удалось обновить песню", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("[INFO] Песня с ID %s успешно обновлена\n", id)
+	json.NewEncoder(w).Encode(song)
+}
+
+// PatchSong godoc
+// @Summary Частично обновить информацию о песне
+// @Description Частичное обновление данных о существующей песне по ID
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param id path int true "ID песни"
+// @Param song body map[string]interface{} true "Обновить поля песни"
+// @Success 200 {object} models.Song
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /song/{id} [patch]
+func PatchSong(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	params := mux.Vars(r)
+	id := params["id"]
+	log.Printf("[INFO] Обработка PATCH-запроса на обновление песни с ID: %s\n", id)
+
+	var song models.Song
+	if err := db.First(&song, id).Error; err != nil {
+		log.Printf("[ERROR] Песня с ID %s не найдена: %v\n", id, err)
+		http.Error(w, "Песня не найдена", http.StatusNotFound)
+		return
+	}
+
+	var updates map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		log.Printf("[ERROR] Неверный формат запроса: %v\n", err)
+		http.Error(w, "Неверный ввод", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("[DEBUG] Частично обновляем песню с ID %s: %+v\n", id, updates)
+	if err := db.Model(&song).Updates(updates).Error; err != nil {
+		log.Printf("[ERROR] Не удалось частично обновить песню с ID %s: %v\n", id, err)
 		http.Error(w, "Не удалось обновить песню", http.StatusInternalServerError)
 		return
 	}

@@ -1,10 +1,10 @@
 package router
 
 import (
-	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 	"net/http"
+	"github.com/gorilla/mux"
 	"song_library/controllers"
+	"gorm.io/gorm"
 )
 
 // SetupRouter настраивает маршруты для обработки запросов
@@ -74,6 +74,23 @@ func SetupRouter(db *gorm.DB) *mux.Router {
 	r.HandleFunc("/song/{id}", func(w http.ResponseWriter, r *http.Request) {
 		controllers.UpdateSong(w, r, db)
 	}).Methods("PUT")
+
+	// Маршрут для частичного обновления данных о песне
+	// @Summary Частично обновить информацию о песне
+	// @Description Частичное обновление данных о существующей песне по ID
+	// @Tags songs
+	// @Accept json
+	// @Produce json
+	// @Param id path int true "ID песни"
+	// @Param song body map[string]interface{} true "Обновить поля песни"
+	// @Success 200 {object} models.Song
+	// @Failure 400 {object} map[string]string
+	// @Failure 404 {object} map[string]string
+	// @Failure 500 {object} map[string]string
+	// @Router /song/{id} [patch]
+	r.HandleFunc("/song/{id}", func(w http.ResponseWriter, r *http.Request) {
+		controllers.PatchSong(w, r, db)
+	}).Methods("PATCH")
 
 	// Маршрут для удаления песни
 	// @Summary Удалить песню
